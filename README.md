@@ -1,6 +1,6 @@
 # keycloak-services-social-weixin
 
-To install the SMS Authenticator one has to:
+To install the social weixin one has to:
 
 * Add the jar to the Keycloak server:
   * `$ cp target/keycloak-services-social-weixin-*.jar _KEYCLOAK_HOME_/providers/`
