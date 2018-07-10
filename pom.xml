@@ -1,0 +1,52 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+	<groupId>org.keycloak</groupId>
+    <artifactId>keycloak-services-social-weixin</artifactId>
+    <version>0.0.1</version>
+    <name>Keycloak Services Social WeiXin</name>
+    <description />
+	<properties>
+        <maven.compiler.target>1.8</maven.compiler.target>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <keycloak.version>4.1.0.Final</keycloak.version>
+    </properties>
+    
+    <repositories>
+		<repository>
+			<!-- Maven 自带的中央仓库使用的Id为central 如果其他的仓库声明也是用该Id 就会覆盖中央仓库的配置 --> 
+			<id>central</id>
+			<name>mvnrepository</name>
+			<url>http://www.mvnrepository.com/</url>
+			<layout>default</layout>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+	</repositories>    
+    <dependencies>
+   		<dependency>
+		    <groupId>org.keycloak</groupId>
+		    <artifactId>keycloak-server-spi-private</artifactId>
+		    <version>${keycloak.version}</version>
+		    <scope>provided</scope>
+		</dependency>
+     <!-- https://mvnrepository.com/artifact/org.keycloak/keycloak-services -->
+		<dependency>
+		    <groupId>org.keycloak</groupId>
+		    <artifactId>keycloak-services</artifactId>
+		    <version>${keycloak.version}</version>
+		    <scope>provided</scope>
+		</dependency>
+		<dependency>
+		    <groupId>org.keycloak</groupId>
+		    <artifactId>keycloak-server-spi</artifactId>
+		    <version>${keycloak.version}</version>
+		    <scope>provided</scope>
+		</dependency>
+		
+  </dependencies>
+</project>
