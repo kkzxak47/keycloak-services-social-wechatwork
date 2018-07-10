@@ -1,0 +1,1 @@
+# keycloak-services-social-weixin
