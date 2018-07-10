@@ -86,6 +86,8 @@ public class WeiXinIdentityProvider extends AbstractOAuth2IdentityProvider<OAuth
 	@Override
 	protected BrokeredIdentityContext extractIdentityFromProfile(EventBuilder event, JsonNode profile) {
 		BrokeredIdentityContext user = new BrokeredIdentityContext(getJsonProperty(profile, "unionid")+getJsonProperty(profile, "openid"));
+		user.setUsername(getJsonProperty(profile, "openid"));
+		user.setModelUsername(getJsonProperty(profile, "openid"));
 		user.setName(getJsonProperty(profile, "nickname"));
 		user.setIdpConfig(getConfig());
 		user.setIdp(this);
