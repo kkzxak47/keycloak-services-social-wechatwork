@@ -23,7 +23,7 @@ import org.keycloak.broker.social.SocialIdentityProviderFactory;
 import org.keycloak.models.KeycloakSession;
 
 /**
- * @author Vlastimil Elias (velias at redhat dot com)
+ * @author yong.jiang
  */
 public class WeiXinIdentityProviderFactory extends AbstractIdentityProviderFactory<WeiXinIdentityProvider>
 		implements SocialIdentityProviderFactory<WeiXinIdentityProvider> {

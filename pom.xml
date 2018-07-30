@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
 	<groupId>org.keycloak</groupId>
     <artifactId>keycloak-services-social-weixin</artifactId>
-    <version>0.0.1</version>
+    <version>0.0.2</version>
     <name>Keycloak Services Social WeiXin</name>
     <description />
 	<properties>

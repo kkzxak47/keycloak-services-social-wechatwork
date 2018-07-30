@@ -1,0 +1,14 @@
+<div class="form-group clearfix">
+	<label class="col-md-2 control-label" for="clientId2">{{:: 'mobile-weixin-appid' | translate}}</label>
+	<div class="col-md-6">
+		<input class="form-control" id="clientId2" type="text" ng-model="identityProvider.config.clientId2" >
+	</div>
+	<kc-tooltip>{{:: 'mobile-weixin-appid.tooltip' | translate}}</kc-tooltip>
+</div>
+<div class="form-group clearfix">
+	<label class="col-md-2 control-label" for="clientSecret2">{{:: 'mobile-weixin-secret' | translate}}</label>
+	<div class="col-md-6">
+		<input class="form-control" id="clientSecret2" kc-password ng-model="identityProvider.config.clientSecret2" >
+	</div>
+	<kc-tooltip>{{:: 'mobile-weixin-secret.tooltip' | translate}}</kc-tooltip>
+</div>
