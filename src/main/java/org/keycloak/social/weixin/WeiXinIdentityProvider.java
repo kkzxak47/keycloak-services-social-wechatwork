@@ -18,7 +18,7 @@ package org.keycloak.social.weixin;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.UUID;
+//import java.util.UUID;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.QueryParam;
@@ -29,7 +29,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
-import org.apache.commons.codec.binary.StringUtils;
+//import org.apache.commons.codec.binary.StringUtils;
 import org.keycloak.OAuth2Constants;
 import org.keycloak.broker.oidc.AbstractOAuth2IdentityProvider;
 import org.keycloak.broker.oidc.OAuth2IdentityProviderConfig;
@@ -62,6 +62,8 @@ public class WeiXinIdentityProvider extends AbstractOAuth2IdentityProvider<OAuth
 	public static final String AUTH_URL = "https://open.weixin.qq.com/connect/qrconnect";
 	public static final String TOKEN_URL = "https://api.weixin.qq.com/sns/oauth2/access_token";
 	public static final String DEFAULT_SCOPE = "snsapi_login";
+	public static final String DEFAULT_RESPONSE_TYPE = "code";
+	public static final String WEIXIN_REDIRECT_FRAGMENT = "wechat_redirect";
 
 	public static final String WECHAT_AUTH_URL = "https://open.weixin.qq.com/connect/oauth2/authorize";
 	public static final String WECHAT_TOKEN_URL = "https://api.weixin.qq.com/sns/oauth2/access_token";
@@ -71,7 +73,8 @@ public class WeiXinIdentityProvider extends AbstractOAuth2IdentityProvider<OAuth
 
 	public static final String OAUTH2_PARAMETER_CLIENT_ID = "appid";
 	public static final String OAUTH2_PARAMETER_CLIENT_SECRET = "secret";
-	
+	public static final String OAUTH2_PARAMETER_RESPONSE_TYPE = "response_type";
+
 	public static final String WECHAT_APPID_KEY = "clientId2";
 	public static final String WECHATAPPIDKEY = "clientSecret2";
 
@@ -178,17 +181,23 @@ public class WeiXinIdentityProvider extends AbstractOAuth2IdentityProvider<OAuth
 		if (isWechatBrowser(ua)) {// 是微信浏览器
 			logger.info("----------wechat");
 			uriBuilder = UriBuilder.fromUri(WECHAT_AUTH_URL);
-			uriBuilder.queryParam(OAUTH2_PARAMETER_SCOPE, WECHAT_DEFAULT_SCOPE)
-					.queryParam(OAUTH2_PARAMETER_STATE, request.getState().getEncoded())
-					.queryParam(OAUTH2_PARAMETER_RESPONSE_TYPE, "code")
+			uriBuilder
 					.queryParam(OAUTH2_PARAMETER_CLIENT_ID, getConfig().getConfig().get(WECHAT_APPID_KEY))
-					.queryParam(OAUTH2_PARAMETER_REDIRECT_URI, request.getRedirectUri());
+					.queryParam(OAUTH2_PARAMETER_REDIRECT_URI, request.getRedirectUri())
+					.queryParam(OAUTH2_PARAMETER_RESPONSE_TYPE, DEFAULT_RESPONSE_TYPE)
+					.queryParam(OAUTH2_PARAMETER_SCOPE, WECHAT_DEFAULT_SCOPE)
+					.queryParam(OAUTH2_PARAMETER_STATE, request.getState().getEncoded())
+
+					;
 		} else {
 			uriBuilder = UriBuilder.fromUri(getConfig().getAuthorizationUrl());
-			uriBuilder.queryParam(OAUTH2_PARAMETER_SCOPE, getConfig().getDefaultScope())
-					.queryParam(OAUTH2_PARAMETER_STATE, request.getState().getEncoded())
+			uriBuilder
 					.queryParam(OAUTH2_PARAMETER_CLIENT_ID, getConfig().getClientId())
-					.queryParam(OAUTH2_PARAMETER_REDIRECT_URI, request.getRedirectUri());
+					.queryParam(OAUTH2_PARAMETER_REDIRECT_URI, request.getRedirectUri())
+					.queryParam(OAUTH2_PARAMETER_RESPONSE_TYPE, DEFAULT_RESPONSE_TYPE)
+					.queryParam(OAUTH2_PARAMETER_SCOPE, getConfig().getDefaultScope())
+					.queryParam(OAUTH2_PARAMETER_STATE, request.getState().getEncoded())
+					;
 		}
 
 		String loginHint = request.getAuthenticationSession().getClientNote(OIDCLoginProtocol.LOGIN_HINT_PARAM);
@@ -204,17 +213,18 @@ public class WeiXinIdentityProvider extends AbstractOAuth2IdentityProvider<OAuth
 			uriBuilder.queryParam(OAuth2Constants.PROMPT, prompt);
 		}
 
-		String nonce = request.getAuthenticationSession().getClientNote(OIDCLoginProtocol.NONCE_PARAM);
-		if (nonce == null || nonce.isEmpty()) {
-			nonce = UUID.randomUUID().toString();
-			request.getAuthenticationSession().setClientNote(OIDCLoginProtocol.NONCE_PARAM, nonce);
-		}
-		uriBuilder.queryParam(OIDCLoginProtocol.NONCE_PARAM, nonce);
+//		String nonce = request.getAuthenticationSession().getClientNote(OIDCLoginProtocol.NONCE_PARAM);
+//		if (nonce == null || nonce.isEmpty()) {
+//			nonce = UUID.randomUUID().toString();
+//			request.getAuthenticationSession().setClientNote(OIDCLoginProtocol.NONCE_PARAM, nonce);
+//		}
+//		uriBuilder.queryParam(OIDCLoginProtocol.NONCE_PARAM, nonce);
 
 		String acr = request.getAuthenticationSession().getClientNote(OAuth2Constants.ACR_VALUES);
 		if (acr != null) {
 			uriBuilder.queryParam(OAuth2Constants.ACR_VALUES, acr);
 		}
+		uriBuilder.fragment(WEIXIN_REDIRECT_FRAGMENT);
 		return uriBuilder;
 	}
 
@@ -296,24 +306,28 @@ public class WeiXinIdentityProvider extends AbstractOAuth2IdentityProvider<OAuth
 			return SimpleHttp.doPost(getConfig().getTokenUrl(), session).param(OAUTH2_PARAMETER_CODE, authorizationCode)
 					.param(OAUTH2_PARAMETER_CLIENT_ID, getConfig().getClientId())
 					.param(OAUTH2_PARAMETER_CLIENT_SECRET, getConfig().getClientSecret())
-					.param(OAUTH2_PARAMETER_REDIRECT_URI, uriInfo.getAbsolutePath().toString())
+					.param(OAUTH2_PARAMETER_CODE, authorizationCode)
+//					.param(OAUTH2_PARAMETER_REDIRECT_URI, uriInfo.getAbsolutePath().toString())
 					.param(OAUTH2_PARAMETER_GRANT_TYPE, OAUTH2_GRANT_TYPE_AUTHORIZATION_CODE);
 		}
 
 		public SimpleHttp generateTokenRequest(String authorizationCode, boolean wechat) {
 			if (wechat) {
 				return SimpleHttp.doPost(WECHAT_TOKEN_URL, session)
-						.param(OAUTH2_PARAMETER_CODE, authorizationCode)
 						.param(OAUTH2_PARAMETER_CLIENT_ID, getConfig().getConfig().get(WECHAT_APPID_KEY))
 						.param(OAUTH2_PARAMETER_CLIENT_SECRET, getConfig().getConfig().get(WECHATAPPIDKEY))
-						.param(OAUTH2_PARAMETER_REDIRECT_URI, uriInfo.getAbsolutePath().toString())
-						.param(OAUTH2_PARAMETER_GRANT_TYPE, OAUTH2_GRANT_TYPE_AUTHORIZATION_CODE);
+						.param(OAUTH2_PARAMETER_CODE, authorizationCode)
+						.param(OAUTH2_PARAMETER_GRANT_TYPE, OAUTH2_GRANT_TYPE_AUTHORIZATION_CODE)
+						// .param(OAUTH2_PARAMETER_REDIRECT_URI, uriInfo.getAbsolutePath().toString())
+						;
 			}
-			return SimpleHttp.doPost(getConfig().getTokenUrl(), session).param(OAUTH2_PARAMETER_CODE, authorizationCode)
+			return SimpleHttp.doPost(getConfig().getTokenUrl(), session)
 					.param(OAUTH2_PARAMETER_CLIENT_ID, getConfig().getClientId())
 					.param(OAUTH2_PARAMETER_CLIENT_SECRET, getConfig().getClientSecret())
-					.param(OAUTH2_PARAMETER_REDIRECT_URI, uriInfo.getAbsolutePath().toString())
-					.param(OAUTH2_PARAMETER_GRANT_TYPE, OAUTH2_GRANT_TYPE_AUTHORIZATION_CODE);
+					.param(OAUTH2_PARAMETER_CODE, authorizationCode)
+					.param(OAUTH2_PARAMETER_GRANT_TYPE, OAUTH2_GRANT_TYPE_AUTHORIZATION_CODE)
+					// .param(OAUTH2_PARAMETER_REDIRECT_URI, uriInfo.getAbsolutePath().toString())
+					;
 		}
 	}
 }
