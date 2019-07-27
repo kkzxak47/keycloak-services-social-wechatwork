@@ -79,12 +79,11 @@ public class WeiXinIdentityProvider extends AbstractOAuth2IdentityProvider<OAuth
 	public static final String WEIXIN_CORP_SECRET = "corpsecret";
 
 
-	private static DefaultCacheManager _cacheManager;
 	private String ACCESS_TOKEN_KEY = "access_token";
 	private String ACCESS_TOKEN_CACHE_KEY = "xsyx_sso_access_token";
 
+	private static DefaultCacheManager _cacheManager;
 	public static String WECHAT_WORK_CACHE_NAME = "xsyx_sso";
-
 	public static Cache<String, String> sso_cache = get_cache();
 
 	private static DefaultCacheManager getCacheManager() {
@@ -104,8 +103,8 @@ public class WeiXinIdentityProvider extends AbstractOAuth2IdentityProvider<OAuth
 		} catch (Exception e) {
 			logger.error(e);
 			e.printStackTrace(System.out);
+			throw e;
 		}
-		return null;
 	}
 
 	private String get_access_token() {
