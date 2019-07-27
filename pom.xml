@@ -3,14 +3,44 @@
     <modelVersion>4.0.0</modelVersion>
 	<groupId>org.keycloak</groupId>
     <artifactId>keycloak-services-social-weixin</artifactId>
-    <version>0.0.3</version>
+    <version>0.0.5</version>
     <name>Keycloak Services Social WeiXin</name>
     <description />
 	<properties>
         <maven.compiler.target>1.8</maven.compiler.target>
         <maven.compiler.source>1.8</maven.compiler.source>
         <keycloak.version>6.0.1</keycloak.version>
+		<infinispan.version>9.4.8.Final</infinispan.version>
     </properties>
+
+	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<artifactId>maven-assembly-plugin</artifactId>
+					<configuration>
+						<descriptorRefs>
+							<descriptorRef>jar-with-dependencies</descriptorRef>
+						</descriptorRefs>
+						<archive>
+							<manifest>
+								<mainClass></mainClass>
+							</manifest>
+						</archive>
+					</configuration>
+					<executions>
+						<execution>
+							<id>make-assembly</id>
+							<phase>package</phase>
+							<goals>
+								<goal>single</goal>
+							</goals>
+						</execution>
+					</executions>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
     
     <repositories>
 		<repository>
@@ -28,6 +58,11 @@
 		</repository>
 	</repositories>    
     <dependencies>
+		<dependency>
+			<groupId>org.keycloak</groupId>
+			<artifactId>keycloak-core</artifactId>
+			<version>${keycloak.version}</version>
+		</dependency>
    		<dependency>
 		    <groupId>org.keycloak</groupId>
 		    <artifactId>keycloak-server-spi-private</artifactId>
@@ -47,6 +82,10 @@
 		    <version>${keycloak.version}</version>
 		    <scope>provided</scope>
 		</dependency>
-		
+		<dependency>
+			<groupId>org.infinispan</groupId>
+			<artifactId>infinispan-core</artifactId>
+			<version>${infinispan.version}</version>
+		</dependency>
   </dependencies>
 </project>
