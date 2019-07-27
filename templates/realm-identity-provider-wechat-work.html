@@ -19,14 +19,14 @@
         </fieldset>
         <fieldset>
             <div class="form-group clearfix">
-                <label class="col-md-2 control-label" for="clientId"><span class="required">*</span> {{:: 'pc-weixin-appid' | translate}}</label>
+                <label class="col-md-2 control-label" for="clientId"><span class="required">*</span> {{:: 'Corpid' | translate}}</label>
                 <div class="col-md-6">
                     <input class="form-control" id="clientId" type="text" ng-model="identityProvider.config.clientId" required>
                 </div>
                 <kc-tooltip>{{:: 'social.client-id.tooltip' | translate}}</kc-tooltip>
             </div>
             <div class="form-group clearfix">
-                <label class="col-md-2 control-label" for="clientSecret"><span class="required">*</span> {{:: 'pc-weixin-secret' | translate}}</label>
+                <label class="col-md-2 control-label" for="clientSecret"><span class="required">*</span> {{:: 'Secret' | translate}}</label>
                 <div class="col-md-6">
                     <input class="form-control" id="clientSecret" kc-password ng-model="identityProvider.config.clientSecret" required>
                 </div>
