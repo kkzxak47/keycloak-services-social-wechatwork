@@ -165,11 +165,11 @@ public class WeiXinIdentityProvider extends AbstractOAuth2IdentityProvider<OAuth
         BrokeredIdentityContext user = new BrokeredIdentityContext(
                 (getJsonProperty(profile, "userid")));
 
-        user.setUsername(getJsonProperty(profile, "userid"));
-        user.setBrokerUserId(getJsonProperty(profile, "userid"));
-        user.setModelUsername(getJsonProperty(profile, "userid"));
+        user.setUsername(getJsonProperty(profile, "userid").toLowerCase());
+        user.setBrokerUserId(getJsonProperty(profile, "userid").toLowerCase());
+        user.setModelUsername(getJsonProperty(profile, "userid").toLowerCase());
         user.setName(getJsonProperty(profile, "name"));
-        user.setEmail(getJsonProperty(profile, "email"));
+        user.setEmail(getJsonProperty(profile, "email").toLowerCase());
         user.setIdpConfig(getConfig());
         user.setIdp(this);
         AbstractJsonUserAttributeMapper.storeUserProfileForMapper(user, profile, getConfig().getAlias());
