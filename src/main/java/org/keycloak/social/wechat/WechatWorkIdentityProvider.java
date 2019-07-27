@@ -67,10 +67,10 @@ public class WechatWorkIdentityProvider extends AbstractOAuth2IdentityProvider<O
     public static final String WEIXIN_CORP_SECRET = "corpsecret";
 
     private String ACCESS_TOKEN_KEY = "access_token";
-    private String ACCESS_TOKEN_CACHE_KEY = "xsyx_sso_access_token";
+    private String ACCESS_TOKEN_CACHE_KEY = "wechat_work_sso_access_token";
 
     private static DefaultCacheManager _cacheManager;
-    public static String WECHAT_WORK_CACHE_NAME = "xsyx_sso";
+    public static String WECHAT_WORK_CACHE_NAME = "wechat_work_sso";
     public static Cache<String, String> sso_cache = get_cache();
 
     private static DefaultCacheManager getCacheManager() {
