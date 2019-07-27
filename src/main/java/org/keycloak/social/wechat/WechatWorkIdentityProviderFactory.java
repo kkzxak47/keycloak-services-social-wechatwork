@@ -22,9 +22,7 @@ import org.keycloak.models.IdentityProviderModel;
 import org.keycloak.broker.social.SocialIdentityProviderFactory;
 import org.keycloak.models.KeycloakSession;
 
-/**
- * @author yong.jiang
- */
+
 public class WechatWorkIdentityProviderFactory extends AbstractIdentityProviderFactory<WechatWorkIdentityProvider>
 		implements SocialIdentityProviderFactory<WechatWorkIdentityProvider> {
 
