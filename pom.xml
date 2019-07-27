@@ -22,11 +22,11 @@
 						<descriptorRefs>
 							<descriptorRef>jar-with-dependencies</descriptorRef>
 						</descriptorRefs>
-						<archive>
-							<manifest>
-								<mainClass></mainClass>
-							</manifest>
-						</archive>
+<!--						<archive>-->
+<!--							<manifest>-->
+<!--								<mainClass></mainClass>-->
+<!--							</manifest>-->
+<!--						</archive>-->
 					</configuration>
 					<executions>
 						<execution>
@@ -85,6 +85,11 @@
 		<dependency>
 			<groupId>org.infinispan</groupId>
 			<artifactId>infinispan-core</artifactId>
+			<version>${infinispan.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.infinispan</groupId>
+			<artifactId>infinispan-commons</artifactId>
 			<version>${infinispan.version}</version>
 		</dependency>
   </dependencies>

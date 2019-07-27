@@ -26,7 +26,7 @@ import org.keycloak.models.KeycloakSession;
 public class WechatWorkIdentityProviderFactory extends AbstractIdentityProviderFactory<WechatWorkIdentityProvider>
 		implements SocialIdentityProviderFactory<WechatWorkIdentityProvider> {
 
-    public static final String PROVIDER_ID = "wechat_work";
+    public static final String PROVIDER_ID = "wechat-work";
 
     @Override
     public String getName() {

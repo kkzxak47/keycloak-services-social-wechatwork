@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jboss-deployment-structure>
+    <ear-subdeployments-isolated>false</ear-subdeployments-isolated>
+    <deployment>
+        <dependencies>
+            <module name="org.infinispan" export="true"/>
+        </dependencies>
+    </deployment>
+</jboss-deployment-structure>
