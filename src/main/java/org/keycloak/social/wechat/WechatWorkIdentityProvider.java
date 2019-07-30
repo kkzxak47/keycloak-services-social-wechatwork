@@ -42,15 +42,16 @@ import javax.ws.rs.GET;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.*;
-import java.io.IOException;
+//import java.io.IOException;
 import java.net.URI;
 import java.util.concurrent.TimeUnit;
 
 
-public class WechatWorkIdentityProvider extends AbstractOAuth2IdentityProvider<OAuth2IdentityProviderConfig>
-        implements SocialIdentityProvider<OAuth2IdentityProviderConfig> {
+public class WechatWorkIdentityProvider extends AbstractOAuth2IdentityProvider<WechatWorkProviderConfig>
+        implements SocialIdentityProvider<WechatWorkProviderConfig> {
 
     public static final String AUTH_URL = "https://open.weixin.qq.com/connect/oauth2/authorize";
+    public static final String QRCODE_AUTH_URL = "https://open.work.weixin.qq.com/wwopen/sso/qrConnect";  // 企业微信外使用
     public static final String TOKEN_URL = "https://qyapi.weixin.qq.com/cgi-bin/gettoken";
 
     public static final String DEFAULT_SCOPE = "snsapi_base";
@@ -61,6 +62,7 @@ public class WechatWorkIdentityProvider extends AbstractOAuth2IdentityProvider<O
     public static final String PROFILE_DETAIL_URL = "https://qyapi.weixin.qq.com/cgi-bin/user/get";
 
     public static final String OAUTH2_PARAMETER_CLIENT_ID = "appid";
+    public static final String OAUTH2_PARAMETER_AGENT_ID = "agentid";
     public static final String OAUTH2_PARAMETER_RESPONSE_TYPE = "response_type";
 
     public static final String WEIXIN_CORP_ID = "corpid";
@@ -138,9 +140,10 @@ public class WechatWorkIdentityProvider extends AbstractOAuth2IdentityProvider<O
         return get_access_token();
     }
 
-    public WechatWorkIdentityProvider(KeycloakSession session, OAuth2IdentityProviderConfig config) {
+    public WechatWorkIdentityProvider(KeycloakSession session, WechatWorkProviderConfig config) {
         super(session, config);
         config.setAuthorizationUrl(AUTH_URL);
+        config.setQrcodeAuthorizationUrl(QRCODE_AUTH_URL);
         config.setTokenUrl(TOKEN_URL);
     }
 
@@ -184,7 +187,7 @@ public class WechatWorkIdentityProvider extends AbstractOAuth2IdentityProvider<O
                             .param("code", authorizationCode)
                             .asJson();
             // {"UserId":"ZhongXun","DeviceId":"10000556333395ZN","errcode":0,"errmsg":"ok"}
-//            logger.info("profile first " + profile.toString());
+            logger.info("profile first " + profile.toString());
             long errcode = profile.get("errcode").asInt();
             if (errcode == 42001 || errcode == 40014) {
                 accessToken = reset_access_token();
@@ -192,7 +195,7 @@ public class WechatWorkIdentityProvider extends AbstractOAuth2IdentityProvider<O
                         .param(ACCESS_TOKEN_KEY, accessToken)
                         .param("code", authorizationCode)
                         .asJson();
-//                logger.info("profile retried " + profile.toString());
+                logger.info("profile retried " + profile.toString());
             }
             if (errcode != 0) {
                 throw new IdentityBrokerException("get user info failed, please retry");
@@ -203,7 +206,7 @@ public class WechatWorkIdentityProvider extends AbstractOAuth2IdentityProvider<O
                     .asJson();
 //            logger.info("get userInfo =" + profile.toString());
             context = extractIdentityFromProfile(null, profile);
-        } catch (IOException e) {
+        } catch (Exception e) {
             logger.error(e);
             e.printStackTrace(System.out);
         }
@@ -233,16 +236,26 @@ public class WechatWorkIdentityProvider extends AbstractOAuth2IdentityProvider<O
 
         final UriBuilder uriBuilder;
 
-        uriBuilder = UriBuilder.fromUri(getConfig().getAuthorizationUrl());
-        uriBuilder
-                .queryParam(OAUTH2_PARAMETER_CLIENT_ID, getConfig().getClientId())
-                .queryParam(OAUTH2_PARAMETER_REDIRECT_URI, request.getRedirectUri())
-                .queryParam(OAUTH2_PARAMETER_RESPONSE_TYPE, DEFAULT_RESPONSE_TYPE)
-                .queryParam(OAUTH2_PARAMETER_SCOPE, getConfig().getDefaultScope())
-                .queryParam(OAUTH2_PARAMETER_STATE, request.getState().getEncoded())
-                ;
-        uriBuilder.fragment(WEIXIN_REDIRECT_FRAGMENT);
-
+        String ua = request.getHttpRequest().getHttpHeaders().getHeaderString("user-agent").toLowerCase();
+        if (ua.contains("wxwork")) {
+            uriBuilder = UriBuilder.fromUri(getConfig().getAuthorizationUrl());
+            uriBuilder
+                    .queryParam(OAUTH2_PARAMETER_CLIENT_ID, getConfig().getClientId())
+                    .queryParam(OAUTH2_PARAMETER_REDIRECT_URI, request.getRedirectUri())
+                    .queryParam(OAUTH2_PARAMETER_RESPONSE_TYPE, DEFAULT_RESPONSE_TYPE)
+                    .queryParam(OAUTH2_PARAMETER_SCOPE, getConfig().getDefaultScope())
+                    .queryParam(OAUTH2_PARAMETER_STATE, request.getState().getEncoded())
+            ;
+            uriBuilder.fragment(WEIXIN_REDIRECT_FRAGMENT);
+        }
+        else {
+            uriBuilder = UriBuilder.fromUri(getConfig().getQrcodeAuthorizationUrl());
+            uriBuilder
+                    .queryParam(OAUTH2_PARAMETER_CLIENT_ID, getConfig().getClientId())
+                    .queryParam(OAUTH2_PARAMETER_AGENT_ID, getConfig().getAgentId())
+                    .queryParam(OAUTH2_PARAMETER_REDIRECT_URI, request.getRedirectUri())
+                    .queryParam(OAUTH2_PARAMETER_STATE, request.getState().getEncoded());
+        }
         return uriBuilder;
     }
 
@@ -272,8 +285,9 @@ public class WechatWorkIdentityProvider extends AbstractOAuth2IdentityProvider<O
         @GET
         public Response authResponse(@QueryParam(AbstractOAuth2IdentityProvider.OAUTH2_PARAMETER_STATE) String state,
                 @QueryParam(AbstractOAuth2IdentityProvider.OAUTH2_PARAMETER_CODE) String authorizationCode,
-                @QueryParam(OAuth2Constants.ERROR) String error) {
-//            logger.info("OAUTH2_PARAMETER_CODE=" + authorizationCode);
+                @QueryParam(OAuth2Constants.ERROR) String error,
+                @QueryParam("appid") String client_id) {
+            logger.info("OAUTH2_PARAMETER_CODE=" + authorizationCode);
 
             if (error != null) {
                 logger.error(error + " for broker login " + getConfig().getProviderId());

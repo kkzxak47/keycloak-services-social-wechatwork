@@ -26,6 +26,13 @@
                 <kc-tooltip>{{:: 'social.client-id.tooltip' | translate}}</kc-tooltip>
             </div>
             <div class="form-group clearfix">
+                <label class="col-md-2 control-label" for="agentId"><span class="required">*</span> {{:: 'Agentid' | translate}}</label>
+                <div class="col-md-6">
+                    <input class="form-control" id="agentId" type="text" ng-model="identityProvider.config.agentId" required>
+                </div>
+                <kc-tooltip>{{:: 'social.agent-id.tooltip' | translate}}</kc-tooltip>
+            </div>
+            <div class="form-group clearfix">
                 <label class="col-md-2 control-label" for="clientSecret"><span class="required">*</span> {{:: 'Secret' | translate}}</label>
                 <div class="col-md-6">
                     <input class="form-control" id="clientSecret" kc-password ng-model="identityProvider.config.clientSecret" required>
