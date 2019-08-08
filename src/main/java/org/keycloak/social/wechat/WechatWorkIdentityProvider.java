@@ -165,7 +165,8 @@ public class WechatWorkIdentityProvider extends AbstractOAuth2IdentityProvider<W
         user.setUsername(getJsonProperty(profile, "userid").toLowerCase());
         user.setBrokerUserId(getJsonProperty(profile, "userid").toLowerCase());
         user.setModelUsername(getJsonProperty(profile, "userid").toLowerCase());
-        user.setName(getJsonProperty(profile, "name"));
+        user.setFirstName(getJsonProperty(profile, "email").split("@")[0].toLowerCase());
+        user.setLastName(getJsonProperty(profile, "name"));
         user.setEmail(getJsonProperty(profile, "email").toLowerCase());
         user.setIdpConfig(getConfig());
         user.setIdp(this);
