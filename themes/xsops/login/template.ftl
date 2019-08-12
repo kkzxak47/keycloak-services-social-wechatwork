@@ -1,4 +1,3 @@
-{% raw %}
 <#macro registrationLayout bodyClass="" displayInfo=false displayMessage=true displayWide=false>
 <!doctype html>
 <html lang="en">
@@ -315,4 +314,3 @@
   </script>
 </html>
 </#macro>
-{% endraw %}
