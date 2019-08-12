@@ -130,12 +130,19 @@
       }
       let inWechatWork = /wxwork/i.test(navigator.userAgent);
       if (!inWechatWork && document.getElementsByName("theFrame").length > 0) {
-          let styles = `#zocial-wechat-work {display: none;}`;
-          let styleSheet = document.createElement("style");
-          styleSheet.type = "text/css";
-          styleSheet.innerText = styles;
-          document.head.appendChild(styleSheet);
-          window.open(window.location.href + "&kc_idp_hint=wechat-work", "theFrame");
+          let xmlhttp = new XMLHttpRequest();
+
+          xmlhttp.onreadystatechange = function() {
+              if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
+                  let thePage = new DOMParser().parseFromString(xmlhttp.responseText, "text/html");
+                  let theUrl = thePage.getElementById("zocial-wechat-work").href;
+                  console.log(theUrl);
+                  window.open(theUrl, "theFrame");
+              }
+          };
+          xmlhttp.open("GET", window.location.href, true);
+          xmlhttp.send();
+
       }
     }
     $(document).ready(function(){
