@@ -1,3 +1,4 @@
+{% raw %}
 <#macro registrationLayout bodyClass="" displayInfo=false displayMessage=true displayWide=false>
 <!doctype html>
 <html lang="en">
@@ -130,12 +131,17 @@
       }
       let inWechatWork = /wxwork/i.test(navigator.userAgent);
       if (!inWechatWork && document.getElementsByName("theFrame").length > 0) {
-          let styles = `#zocial-wechat-work {display: none;}`;
-          let styleSheet = document.createElement("style");
-          styleSheet.type = "text/css";
-          styleSheet.innerText = styles;
-          document.head.appendChild(styleSheet);
-          window.open(window.location.href + "&kc_idp_hint=wechat-work", "theFrame");
+          let xmlhttp = new XMLHttpRequest();
+          xmlhttp.onreadystatechange = function() {
+              if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
+                  let thePage = new DOMParser().parseFromString(xmlhttp.responseText, "text/html");
+                  let theUrl = thePage.getElementById("zocial-wechat-work").href;
+                  console.log(theUrl);
+                  window.open(theUrl, "theFrame");
+              }
+          };
+          xmlhttp.open("GET", window.location.href, true);
+          xmlhttp.send();
       }
     }
     $(document).ready(function(){
@@ -163,40 +169,40 @@
             
             <!-- Collect the nav links, forms, and other content for toggling -->
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-              <ul class="nav navbar-nav">
+              <!--<ul class="nav navbar-nav">
                 <li class="dropdown">
                       <a href="#" class="dropdown-toggle" data-toggle="dropdown" > 
-                        <!-- <img src="images/flags/US.png"/> -->
+                        <img src="images/flags/US.png"/>
                         <i class="fa fa-user-md" style="color: white"></i>&nbsp;
                         尚未登录
                         <b class="caret"></b>
                       </a>
-                      <!-- <ul class="dropdown-menu">
+                      <ul class="dropdown-menu">
                         <li><a href="#"><img src="images/flags/DE.png"/> Deutsch</a></li>
                         分割线，用来分隔菜单 
                         <li class="divider"></li> 
-                      </ul> -->
+                      </ul> 
                 </li>
-              </ul>
+              </ul>-->
               <ul class="nav navbar-nav navbar-right">
                     <li>
                         <a href="#"> 
-                            <i class="fa fa-facebook-square"></i>
-                            官方微信
+                            <i class="fa fa-wechat "></i>
+                            公众号
                         </a>
                     </li>
                     <li>
                         <a href="#"> 
-                            <i class="fa fa-twitter"></i>
-                            官方微博
+                            <i class="fa fa-dot-circle-o"></i>
+                            小程序
                         </a>
                     </li>
-                    <li>
-                        <a href="#"> 
-                            <i class="fa fa-envelope-o"></i>
-                            app下载
-                        </a>
-                    </li>
+                    //<li>
+                        //<a href="#"> 
+                            //<i class="fa fa-envelope-o"></i>
+                            //app下载
+                        //</a>
+                    //</li>
               </ul>
               
             </div><!-- /.navbar-collapse -->
@@ -286,10 +292,9 @@
                       border-radius: 4px; width:78px;display: inline-block;">登录</button>
                   </div>
                   <div style="width: 253px;height: 210px;">
-                      <div class='iframe-container'style="width: 253px;height: 210px;">
-<iframe name="theFrame" id="wechat_work_iframe"  scrolling="no" frameborder="no" allowfullscreen style="border: 1px solid red;
-                        height: 600px;width: 600px;position: absolute;transform: scale(1.5);left: 370px;transform: scale(0.6) translate(-320px, -200px);"></iframe>
-</div>
+                      <div class='iframe-container'style="    width: 222px;height: 211px; overflow: hidden"><iframe name="theFrame" id="wechat_work_iframe"  scrolling="no" frameborder="no" allowfullscreen style="
+                        height: 600px;transform: scale(0.6) translate(-320px, -200px);margin-left: 150px"></iframe>
+                      </div>
                   </div>
               </div>
           </div>
@@ -309,5 +314,5 @@
     });
   </script>
 </html>
-
 </#macro>
+{% endraw %}
