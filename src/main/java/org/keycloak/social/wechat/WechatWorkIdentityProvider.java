@@ -168,6 +168,15 @@ public class WechatWorkIdentityProvider extends AbstractOAuth2IdentityProvider<W
         user.setFirstName(getJsonProperty(profile, "email").split("@")[0].toLowerCase());
         user.setLastName(getJsonProperty(profile, "name"));
         user.setEmail(getJsonProperty(profile, "email").toLowerCase());
+        // 手机号码，第三方仅通讯录应用可获取
+        user.setUserAttribute("mobile", getJsonProperty(profile, "mobile"));
+        // 性别。0表示未定义，1表示男性，2表示女性
+        user.setUserAttribute("gender", getJsonProperty(profile, "gender"));
+        // 激活状态: 1=已激活，2=已禁用，4=未激活。
+        // 已激活代表已激活企业微信或已关注微工作台（原企业号）。未激活代表既未激活企业微信又未关注微工作台（原企业号）。
+        user.setUserAttribute("status", getJsonProperty(profile, "status"));
+        // 成员启用状态。1表示启用的成员，0表示被禁用。注意，服务商调用接口不会返回此字段
+        user.setUserAttribute("enable", getJsonProperty(profile, "enable"));
         user.setIdpConfig(getConfig());
         user.setIdp(this);
         AbstractJsonUserAttributeMapper.storeUserProfileForMapper(user, profile, getConfig().getAlias());
