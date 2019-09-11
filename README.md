@@ -11,6 +11,6 @@ To install the social wechat work one has to:
   * `$ cp themes/base/admin/resources/partials/realm-identity-provider-wechat-work.html _KEYCLOAK_HOME_/themes/base/admin/resources/partials/`
   * `$ cp themes/base/admin/resources/partials/realm-identity-provider-wechat-work-ext.html _KEYCLOAK_HOME_/themes/base/admin/resources/partials/`
 
-Be ware you need to fill in corpid and agent secret, agentid is not used here.
+Be ware you need to fill in corpid, agentid and agent secret.
 
 based on https://github.com/jyqq163/keycloak-services-social-weixin
