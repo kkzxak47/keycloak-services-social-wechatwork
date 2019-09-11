@@ -3,6 +3,7 @@
     <deployment>
         <dependencies>
             <module name="org.infinispan"/>
+            <module name="org.keycloak.keycloak-services" />
         </dependencies>
     </deployment>
 </jboss-deployment-structure>
