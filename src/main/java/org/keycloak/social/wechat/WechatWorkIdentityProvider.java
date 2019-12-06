@@ -23,6 +23,7 @@ import org.infinispan.manager.DefaultCacheManager;
 import org.keycloak.OAuth2Constants;
 import org.keycloak.broker.oidc.AbstractOAuth2IdentityProvider;
 import org.keycloak.broker.oidc.mappers.AbstractJsonUserAttributeMapper;
+
 import org.keycloak.broker.provider.AuthenticationRequest;
 import org.keycloak.broker.provider.BrokeredIdentityContext;
 import org.keycloak.broker.provider.IdentityBrokerException;
@@ -42,10 +43,9 @@ import javax.ws.rs.GET;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.*;
+//import java.io.IOException;
 import java.net.URI;
 import java.util.concurrent.TimeUnit;
-
-//import java.io.IOException;
 
 
 public class WechatWorkIdentityProvider extends AbstractOAuth2IdentityProvider<WechatWorkProviderConfig>
@@ -72,6 +72,7 @@ public class WechatWorkIdentityProvider extends AbstractOAuth2IdentityProvider<W
     public static final String PROFILE_GENDER = "gender";
     public static final String PROFILE_STATUS = "status";
     public static final String PROFILE_ENABLE = "enable";
+    public static final String PROFILE_USERID = "userid";
 
     private String ACCESS_TOKEN_KEY = "access_token";
     private String ACCESS_TOKEN_CACHE_KEY = "wechat_work_sso_access_token";
@@ -183,6 +184,7 @@ public class WechatWorkIdentityProvider extends AbstractOAuth2IdentityProvider<W
         identity.setUserAttribute(PROFILE_STATUS, getJsonProperty(profile, "status"));
         // 成员启用状态。1表示启用的成员，0表示被禁用。注意，服务商调用接口不会返回此字段
         identity.setUserAttribute(PROFILE_ENABLE, getJsonProperty(profile, "enable"));
+        identity.setUserAttribute(PROFILE_USERID, getJsonProperty(profile, "userid"));
 
         identity.setIdpConfig(getConfig());
         identity.setIdp(this);
@@ -345,5 +347,6 @@ public class WechatWorkIdentityProvider extends AbstractOAuth2IdentityProvider<W
         user.setSingleAttribute(PROFILE_GENDER, context.getUserAttribute(PROFILE_GENDER));
         user.setSingleAttribute(PROFILE_STATUS, context.getUserAttribute(PROFILE_STATUS));
         user.setSingleAttribute(PROFILE_ENABLE, context.getUserAttribute(PROFILE_ENABLE));
+        user.setSingleAttribute(PROFILE_USERID, context.getUserAttribute(PROFILE_USERID));
     }
 }

@@ -2,6 +2,9 @@
 
 Keycloak企业微信登录插件
 
+To build:
+`mvn clean package`
+
 To install the social wechat work one has to:
 
 * Add the jar to the Keycloak server (create `providers` folder if needed):
