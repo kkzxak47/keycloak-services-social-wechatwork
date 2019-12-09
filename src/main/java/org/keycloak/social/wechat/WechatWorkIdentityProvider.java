@@ -348,5 +348,10 @@ public class WechatWorkIdentityProvider extends AbstractOAuth2IdentityProvider<W
         user.setSingleAttribute(PROFILE_STATUS, context.getUserAttribute(PROFILE_STATUS));
         user.setSingleAttribute(PROFILE_ENABLE, context.getUserAttribute(PROFILE_ENABLE));
         user.setSingleAttribute(PROFILE_USERID, context.getUserAttribute(PROFILE_USERID));
+
+        user.setUsername(context.getUsername());
+        user.setFirstName(context.getFirstName());
+        user.setLastName(context.getLastName());
+        user.setEmail(context.getEmail());
     }
 }
