@@ -2,6 +2,8 @@
 
 Keycloak企业微信登录插件
 
+注意只在Keycloak 6.0.1版本下使用过，其他版本情况未知。
+
 To build:
 `mvn clean package`
 
