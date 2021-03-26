@@ -28,6 +28,11 @@ public class WechatWorkIdentityProviderFactory extends AbstractIdentityProviderF
     public static final String PROVIDER_ID = "wechat-work";
 
     @Override
+    public <C extends IdentityProviderModel> C createConfig() {
+        return (C) new WechatWorkProviderConfig(new IdentityProviderModel());
+    }
+
+    @Override
     public String getName() {
         return "WechatWork";
     }
