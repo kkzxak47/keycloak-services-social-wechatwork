@@ -38,6 +38,9 @@ public class WechatWorkIdentityProviderFactory extends AbstractIdentityProviderF
     }
 
     @Override
+    public IdentityProviderModel createConfig() { return new WechatWorkProviderConfig(); }
+
+    @Override
     public String getId() {
         return PROVIDER_ID;
     }
