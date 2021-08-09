@@ -21,6 +21,7 @@ import org.infinispan.Cache;
 import org.infinispan.configuration.cache.ConfigurationBuilder;
 import org.infinispan.manager.DefaultCacheManager;
 import org.keycloak.OAuth2Constants;
+import org.keycloak.OAuthErrorException;
 import org.keycloak.broker.oidc.AbstractOAuth2IdentityProvider;
 import org.keycloak.broker.oidc.mappers.AbstractJsonUserAttributeMapper;
 
@@ -38,6 +39,7 @@ import org.keycloak.models.RealmModel;
 import org.keycloak.models.UserModel;
 import org.keycloak.services.ErrorPage;
 import org.keycloak.services.messages.Messages;
+import org.keycloak.sessions.AuthenticationSessionModel;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.QueryParam;
@@ -307,23 +309,32 @@ public class WechatWorkIdentityProvider extends AbstractOAuth2IdentityProvider<W
                 @QueryParam("appid") String client_id) {
             logger.info("OAUTH2_PARAMETER_CODE=" + authorizationCode);
 
-            if (error != null) {
-                logger.error(error + " for broker login " + getConfig().getProviderId());
-                if (error.equals(ACCESS_DENIED)) {
-                    return callback.cancelled(state);
-                } else {
-                    return callback.error(state, Messages.IDENTITY_PROVIDER_UNEXPECTED_ERROR);
-                }
+            // 以下样版代码从 AbstractOAuth2IdentityProvider 里获取的。
+            if (state == null) {
+                return errorIdentityProviderLogin(Messages.IDENTITY_PROVIDER_MISSING_STATE_ERROR);
             }
-
             try {
-                BrokeredIdentityContext federatedIdentity;
+                AuthenticationSessionModel authSession = this.callback.getAndVerifyAuthenticationSession(state);
+                session.getContext().setAuthenticationSession(authSession);
+
+                if (error != null) {
+                    logger.error(error + " for broker login " + getConfig().getProviderId());
+                    if (error.equals(ACCESS_DENIED)) {
+                        return callback.cancelled();
+                    } else if (error.equals(OAuthErrorException.LOGIN_REQUIRED) || error.equals(OAuthErrorException.INTERACTION_REQUIRED)) {
+                        return callback.error(error);
+                    } else {
+                        return callback.error(Messages.IDENTITY_PROVIDER_UNEXPECTED_ERROR);
+                    }
+                }
+
                 if (authorizationCode != null) {
+                    BrokeredIdentityContext federatedIdentity;
                     federatedIdentity = getFederatedIdentity(authorizationCode);
 
                     federatedIdentity.setIdpConfig(getConfig());
                     federatedIdentity.setIdp(WechatWorkIdentityProvider.this);
-                    federatedIdentity.setCode(state);
+                    federatedIdentity.setAuthenticationSession(authSession);
 
                     return callback.authenticated(federatedIdentity);
                 }
@@ -334,10 +345,13 @@ public class WechatWorkIdentityProvider extends AbstractOAuth2IdentityProvider<W
                 logger.error("Failed to make identity provider oauth callback", e);
                 e.printStackTrace(System.out);
             }
-            event.event(EventType.LOGIN);
+            return errorIdentityProviderLogin(Messages.IDENTITY_PROVIDER_UNEXPECTED_ERROR);
+        }
+
+        private Response errorIdentityProviderLogin(String message) {
+            event.event(EventType.IDENTITY_PROVIDER_LOGIN);
             event.error(Errors.IDENTITY_PROVIDER_LOGIN_FAILURE);
-            return ErrorPage.error(session, null, Response.Status.BAD_GATEWAY,
-                    Messages.IDENTITY_PROVIDER_UNEXPECTED_ERROR);
+            return ErrorPage.error(session, null, Response.Status.BAD_GATEWAY, message);
         }
     }
 
