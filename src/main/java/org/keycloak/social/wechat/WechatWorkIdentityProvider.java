@@ -17,6 +17,13 @@
 package org.keycloak.social.wechat;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.TimeUnit;
+import javax.ws.rs.GET;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.*;
 import org.infinispan.Cache;
 import org.infinispan.configuration.cache.ConfigurationBuilder;
 import org.infinispan.manager.DefaultCacheManager;
@@ -39,13 +46,6 @@ import org.keycloak.models.UserModel;
 import org.keycloak.services.ErrorPage;
 import org.keycloak.services.messages.Messages;
 import org.keycloak.sessions.AuthenticationSessionModel;
-
-import javax.ws.rs.GET;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.*;
-import java.net.URI;
-import java.util.concurrent.TimeUnit;
 
 public class WechatWorkIdentityProvider
     extends AbstractOAuth2IdentityProvider<WechatWorkProviderConfig>
@@ -78,22 +78,19 @@ public class WechatWorkIdentityProvider
   private final String ACCESS_TOKEN_KEY = "access_token";
   private final String ACCESS_TOKEN_CACHE_KEY = "wechat_work_sso_access_token";
 
-  private static DefaultCacheManager _cacheManager;
-  public static String WECHAT_WORK_CACHE_NAME = "wechat_work_sso";
-  public static Cache<String, String> ssoCache = getCache();
+  private static final DefaultCacheManager cacheManager = new DefaultCacheManager();
+  private static final String WECHAT_WORK_CACHE_NAME = "wechat_work_sso";
+  private static final ConcurrentMap<String, Cache<String, String>> caches =
+      new ConcurrentHashMap<>();
 
-  private static DefaultCacheManager getCacheManager() {
-    if (_cacheManager == null) {
-      ConfigurationBuilder config = new ConfigurationBuilder();
-      _cacheManager = new DefaultCacheManager();
-      _cacheManager.defineConfiguration(WECHAT_WORK_CACHE_NAME, config.build());
-    }
-    return _cacheManager;
-  }
-
-  private static Cache<String, String> getCache() {
+  private static Cache<String, String> createCache(String suffix) {
     try {
-      Cache<String, String> cache = getCacheManager().getCache(WECHAT_WORK_CACHE_NAME);
+      String cacheName = WECHAT_WORK_CACHE_NAME + ":" + suffix;
+
+      ConfigurationBuilder config = new ConfigurationBuilder();
+      cacheManager.defineConfiguration(cacheName, config.build());
+
+      Cache<String, String> cache = cacheManager.getCache(cacheName);
       logger.info(cache);
       return cache;
     } catch (Exception e) {
@@ -103,9 +100,15 @@ public class WechatWorkIdentityProvider
     }
   }
 
+  private Cache<String, String> getCache() {
+    return caches.computeIfAbsent(
+        getConfig().getClientId() + ":" + getConfig().getAgentId(),
+        WechatWorkIdentityProvider::createCache);
+  }
+
   private String getAccessToken() {
     try {
-      String token = ssoCache.get(ACCESS_TOKEN_CACHE_KEY);
+      String token = getCache().get(ACCESS_TOKEN_CACHE_KEY);
       if (token == null) {
         JsonNode j = renewAccessToken();
         if (j == null) {
@@ -117,7 +120,7 @@ public class WechatWorkIdentityProvider
         }
         token = getJsonProperty(j, ACCESS_TOKEN_KEY);
         long timeout = Integer.parseInt(getJsonProperty(j, "expires_in"));
-        ssoCache.put(ACCESS_TOKEN_CACHE_KEY, token, timeout, TimeUnit.SECONDS);
+        getCache().put(ACCESS_TOKEN_CACHE_KEY, token, timeout, TimeUnit.SECONDS);
       }
       return token;
     } catch (Exception e) {
@@ -141,7 +144,7 @@ public class WechatWorkIdentityProvider
   }
 
   private String resetAccessToken() {
-    ssoCache.remove(ACCESS_TOKEN_CACHE_KEY);
+    getCache().remove(ACCESS_TOKEN_CACHE_KEY);
     return getAccessToken();
   }
 
