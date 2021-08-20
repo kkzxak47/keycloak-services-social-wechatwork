@@ -17,31 +17,33 @@
 package org.keycloak.social.wechat;
 
 import org.keycloak.broker.provider.AbstractIdentityProviderFactory;
-import org.keycloak.models.IdentityProviderModel;
 import org.keycloak.broker.social.SocialIdentityProviderFactory;
+import org.keycloak.models.IdentityProviderModel;
 import org.keycloak.models.KeycloakSession;
 
+public class WechatWorkIdentityProviderFactory
+    extends AbstractIdentityProviderFactory<WechatWorkIdentityProvider>
+    implements SocialIdentityProviderFactory<WechatWorkIdentityProvider> {
 
-public class WechatWorkIdentityProviderFactory extends AbstractIdentityProviderFactory<WechatWorkIdentityProvider>
-		implements SocialIdentityProviderFactory<WechatWorkIdentityProvider> {
+  public static final String PROVIDER_ID = "wechat-work";
 
-    public static final String PROVIDER_ID = "wechat-work";
+  @Override
+  public String getName() {
+    return "WechatWork";
+  }
 
-    @Override
-    public String getName() {
-        return "WechatWork";
-    }
+  @Override
+  public WechatWorkIdentityProvider create(KeycloakSession session, IdentityProviderModel model) {
+    return new WechatWorkIdentityProvider(session, new WechatWorkProviderConfig(model));
+  }
 
-    @Override
-    public WechatWorkIdentityProvider create(KeycloakSession session, IdentityProviderModel model) {
-        return new WechatWorkIdentityProvider(session, new WechatWorkProviderConfig(model));
-    }
+  @Override
+  public IdentityProviderModel createConfig() {
+    return new WechatWorkProviderConfig();
+  }
 
-    @Override
-    public IdentityProviderModel createConfig() { return new WechatWorkProviderConfig(); }
-
-    @Override
-    public String getId() {
-        return PROVIDER_ID;
-    }
+  @Override
+  public String getId() {
+    return PROVIDER_ID;
+  }
 }
