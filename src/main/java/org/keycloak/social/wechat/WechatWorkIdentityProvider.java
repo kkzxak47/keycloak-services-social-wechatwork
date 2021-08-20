@@ -17,12 +17,6 @@
 package org.keycloak.social.wechat;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import java.net.URI;
-import java.util.concurrent.TimeUnit;
-import javax.ws.rs.GET;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.*;
 import org.infinispan.Cache;
 import org.infinispan.configuration.cache.ConfigurationBuilder;
 import org.infinispan.manager.DefaultCacheManager;
@@ -45,6 +39,13 @@ import org.keycloak.models.UserModel;
 import org.keycloak.services.ErrorPage;
 import org.keycloak.services.messages.Messages;
 import org.keycloak.sessions.AuthenticationSessionModel;
+
+import javax.ws.rs.GET;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.*;
+import java.net.URI;
+import java.util.concurrent.TimeUnit;
 
 public class WechatWorkIdentityProvider
     extends AbstractOAuth2IdentityProvider<WechatWorkProviderConfig>
@@ -74,12 +75,12 @@ public class WechatWorkIdentityProvider
   public static final String PROFILE_ENABLE = "enable";
   public static final String PROFILE_USERID = "userid";
 
-  private String ACCESS_TOKEN_KEY = "access_token";
-  private String ACCESS_TOKEN_CACHE_KEY = "wechat_work_sso_access_token";
+  private final String ACCESS_TOKEN_KEY = "access_token";
+  private final String ACCESS_TOKEN_CACHE_KEY = "wechat_work_sso_access_token";
 
   private static DefaultCacheManager _cacheManager;
   public static String WECHAT_WORK_CACHE_NAME = "wechat_work_sso";
-  public static Cache<String, String> sso_cache = get_cache();
+  public static Cache<String, String> ssoCache = getCache();
 
   private static DefaultCacheManager getCacheManager() {
     if (_cacheManager == null) {
@@ -90,7 +91,7 @@ public class WechatWorkIdentityProvider
     return _cacheManager;
   }
 
-  private static Cache<String, String> get_cache() {
+  private static Cache<String, String> getCache() {
     try {
       Cache<String, String> cache = getCacheManager().getCache(WECHAT_WORK_CACHE_NAME);
       logger.info(cache);
@@ -102,21 +103,21 @@ public class WechatWorkIdentityProvider
     }
   }
 
-  private String get_access_token() {
+  private String getAccessToken() {
     try {
-      String token = sso_cache.get(ACCESS_TOKEN_CACHE_KEY);
+      String token = ssoCache.get(ACCESS_TOKEN_CACHE_KEY);
       if (token == null) {
-        JsonNode j = _renew_access_token();
+        JsonNode j = renewAccessToken();
         if (j == null) {
-          j = _renew_access_token();
+          j = renewAccessToken();
           if (j == null) {
             throw new Exception("renew access token error");
           }
-          logger.debug("retry in renew access token " + j.toString());
+          logger.debug("retry in renew access token " + j);
         }
         token = getJsonProperty(j, ACCESS_TOKEN_KEY);
-        long timeout = Integer.valueOf(getJsonProperty(j, "expires_in"));
-        sso_cache.put(ACCESS_TOKEN_CACHE_KEY, token, timeout, TimeUnit.SECONDS);
+        long timeout = Integer.parseInt(getJsonProperty(j, "expires_in"));
+        ssoCache.put(ACCESS_TOKEN_CACHE_KEY, token, timeout, TimeUnit.SECONDS);
       }
       return token;
     } catch (Exception e) {
@@ -126,15 +127,12 @@ public class WechatWorkIdentityProvider
     return null;
   }
 
-  private JsonNode _renew_access_token() {
+  private JsonNode renewAccessToken() {
     try {
-      JsonNode j =
-          SimpleHttp.doGet(TOKEN_URL, session)
-              .param(WEIXIN_CORP_ID, getConfig().getClientId())
-              .param(WEIXIN_CORP_SECRET, getConfig().getClientSecret())
-              .asJson();
-      //            logger.info("request wechat work access token " + j.toString());
-      return j;
+      return SimpleHttp.doGet(TOKEN_URL, session)
+          .param(WEIXIN_CORP_ID, getConfig().getClientId())
+          .param(WEIXIN_CORP_SECRET, getConfig().getClientSecret())
+          .asJson();
     } catch (Exception e) {
       logger.error(e);
       e.printStackTrace(System.out);
@@ -142,9 +140,9 @@ public class WechatWorkIdentityProvider
     return null;
   }
 
-  private String reset_access_token() {
-    sso_cache.remove(ACCESS_TOKEN_CACHE_KEY);
-    return get_access_token();
+  private String resetAccessToken() {
+    ssoCache.remove(ACCESS_TOKEN_CACHE_KEY);
+    return getAccessToken();
   }
 
   public WechatWorkIdentityProvider(KeycloakSession session, WechatWorkProviderConfig config) {
@@ -197,7 +195,7 @@ public class WechatWorkIdentityProvider
   }
 
   public BrokeredIdentityContext getFederatedIdentity(String authorizationCode) {
-    String accessToken = get_access_token();
+    String accessToken = getAccessToken();
     if (accessToken == null) {
       throw new IdentityBrokerException("No access token available");
     }
@@ -210,10 +208,13 @@ public class WechatWorkIdentityProvider
               .param("code", authorizationCode)
               .asJson();
       // {"UserId":"ZhongXun","DeviceId":"10000556333395ZN","errcode":0,"errmsg":"ok"}
+      // 全局错误码 https://work.weixin.qq.com/api/doc/90001/90148/90455
+      // 42001	access_token已过期
+      // 40014	不合法的access_token
       logger.info("profile first " + profile.toString());
-      long errcode = profile.get("errcode").asInt();
-      if (errcode == 42001 || errcode == 40014) {
-        accessToken = reset_access_token();
+      long errorCode = profile.get("errcode").asInt();
+      if (errorCode == 42001 || errorCode == 40014) {
+        accessToken = resetAccessToken();
         profile =
             SimpleHttp.doGet(PROFILE_URL, session)
                 .param(ACCESS_TOKEN_KEY, accessToken)
@@ -221,7 +222,7 @@ public class WechatWorkIdentityProvider
                 .asJson();
         logger.info("profile retried " + profile.toString());
       }
-      if (errcode != 0) {
+      if (errorCode != 0) {
         throw new IdentityBrokerException("get user info failed, please retry");
       }
       profile =
@@ -231,24 +232,12 @@ public class WechatWorkIdentityProvider
               .asJson();
       //            logger.info("get userInfo =" + profile.toString());
       context = extractIdentityFromProfile(null, profile);
+      context.getContextData().put(FEDERATED_ACCESS_TOKEN, accessToken);
     } catch (Exception e) {
       logger.error(e);
       e.printStackTrace(System.out);
     }
-    context.getContextData().put(FEDERATED_ACCESS_TOKEN, accessToken);
     return context;
-  }
-
-  @Override
-  public Response performLogin(AuthenticationRequest request) {
-    try {
-      URI authorizationUrl = createAuthorizationUrl(request).build();
-      logger.info("auth url " + authorizationUrl.toString());
-      return Response.seeOther(authorizationUrl).build();
-    } catch (Exception e) {
-      e.printStackTrace(System.out);
-      throw new IdentityBrokerException("Could not create authentication request.", e);
-    }
   }
 
   @Override
@@ -332,8 +321,7 @@ public class WechatWorkIdentityProvider
         }
 
         if (authorizationCode != null) {
-          BrokeredIdentityContext federatedIdentity;
-          federatedIdentity = getFederatedIdentity(authorizationCode);
+          BrokeredIdentityContext federatedIdentity = getFederatedIdentity(authorizationCode);
 
           federatedIdentity.setIdpConfig(getConfig());
           federatedIdentity.setIdp(WechatWorkIdentityProvider.this);
