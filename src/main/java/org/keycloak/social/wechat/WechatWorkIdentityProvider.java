@@ -176,9 +176,13 @@ public class WechatWorkIdentityProvider
     identity.setUsername(getJsonProperty(profile, "userid").toLowerCase());
     identity.setBrokerUserId(getJsonProperty(profile, "userid").toLowerCase());
     identity.setModelUsername(getJsonProperty(profile, "userid").toLowerCase());
-    identity.setFirstName(getJsonProperty(profile, "email").split("@")[0].toLowerCase());
+    String email = getJsonProperty(profile, "biz_mail");
+    if (email == null || email.length() == 0) {
+      email = getJsonProperty(profile, "email");
+    }
+    identity.setFirstName(email.split("@")[0].toLowerCase());
     identity.setLastName(getJsonProperty(profile, "name"));
-    identity.setEmail(getJsonProperty(profile, "email").toLowerCase());
+    identity.setEmail(email);
     // 手机号码，第三方仅通讯录应用可获取
     identity.setUserAttribute(PROFILE_MOBILE, getJsonProperty(profile, "mobile"));
     // 性别。0表示未定义，1表示男性，2表示女性
